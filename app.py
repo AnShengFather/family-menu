@@ -284,7 +284,7 @@ def del_dish(did):
 # ─── API: 食材 ────────────────────────────────
 
 @app.route("/api/dishes/<int:did>/ingredients", methods=["GET"])
-@rate_limit()
+@rate_limit(600)
 def get_ingredients(did):
     its = Ingredient.query.filter_by(dish_id=did).all()
     return jsonify([i.to_dict() for i in its])

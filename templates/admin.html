@@ -73,8 +73,7 @@ body{padding:10px}.card{padding:12px}
 .tbl td::before{content:attr(data-label);font-weight:600;color:var(--t3);font-size:11px;min-width:36px;flex-shrink:0}
 .tbl .tag{display:inline}
 .ac{font-size:11px;padding:3px 8px}
-.actions{flex-direction:column;gap:4px;width:100%}
-.actions .ac{flex:none;width:100%;text-align:center}
+.actions{flex-direction:row;gap:4px;width:100%}
 }
 </style>
 </head>
@@ -300,9 +299,10 @@ function renderT(){
   var st=d.available?'<span class="on">在售</span>':'<span class="off">下架</span>';
   return'<tr><td data-label="名称">'+d.name+'</td><td data-label="分类"><span class="tag">'+d.category+'</span></td><td data-label="食材" style="max-width:120px"><span class="ing-list" id="ings-'+d.id+'"></span><span style="color:var(--t3);font-size:11px">...</span></td><td data-label="状态">'+st+'</td><td data-label="操作"><div class="actions"><button class="ac" onclick="editD('+d.id+')">编辑</button><button class="ac" onclick="toggleA('+d.id+','+(!d.available)+')">'+(d.available?'下架':'上架')+'</button><button class="ac del" onclick="delD('+d.id+')">删除</button></div></td></tr>';
  }).join('');
- // 异步加载食材摘要
+ // 异步加载食材摘要(错开请求避免429)
+ var idx=0;
  flt.forEach(function(d){
-  if(d.available)loadIngSum(d.id);
+  if(d.available)setTimeout(function(){loadIngSum(d.id)},idx*200);idx++;
  });
 }
 
