@@ -31,6 +31,10 @@ h1{font-size:20px;margin-bottom:2px}
 .fr textarea{flex-basis:100%;resize:vertical;min-height:44px}
 .fr button{background:var(--p);color:#fff;border:none;border-radius:var(--rs);padding:8px 18px;cursor:pointer;font-size:13px;font-weight:600}
 .fr button.sec{background:#eee;color:var(--t2)}
+.hd-btn{font-size:12px;background:none;border:none;color:var(--t2);cursor:pointer;padding:4px 10px;border-radius:6px;font-weight:500;transition:.12s;text-decoration:none}
+.hd-btn:hover{background:var(--pl);color:var(--p)}
+.hd-logout{color:#c66!important}
+.hd-logout:hover{background:rgba(200,60,60,0.08)!important;color:#c44!important}
 
 .cf{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none;position:sticky;top:0;z-index:50;background:var(--card)}
 .cf::-webkit-scrollbar{display:none}
@@ -44,9 +48,11 @@ h1{font-size:20px;margin-bottom:2px}
 .tbl .tag{font-size:11px;background:var(--pl);color:var(--p);padding:1px 8px;border-radius:4px;white-space:nowrap}
 .tbl .on{color:#2a7;font-weight:500}
 .tbl .off{color:#c44}
-.ac{border:1px solid var(--l);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:12px;background:var(--card);transition:0.15s;margin-right:2px;white-space:nowrap}
+.ac{border:1px solid var(--l);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:12px;background:var(--card);transition:0.15s;white-space:nowrap}
 .ac:hover{border-color:var(--p);color:var(--p)}
 .ac.del:hover{border-color:#c44;color:#c44}
+.actions{display:flex;gap:3px;flex-wrap:wrap}
+.actions .ac{flex:1;text-align:center;min-width:40px}
 
 /* 食材管理 */
 .ing-list{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
@@ -59,20 +65,32 @@ h1{font-size:20px;margin-bottom:2px}
 @media(max-width:600px){
 body{padding:10px}.card{padding:12px}
 .fr input,.fr select{min-width:100%}
-.tbl th,.tbl td{padding:6px 3px;font-size:12px}
+.tbl,.tbl tbody,.tbl tr,.tbl td,.tbl th{display:block}
+.tbl thead{display:none}
+.tbl tr{margin-bottom:8px;background:var(--card);border-radius:var(--rs);padding:8px 10px;border:1px solid var(--l)}
+.tbl td{padding:4px 0;font-size:12px;border:none;display:flex;align-items:center;gap:6px}
+.tbl td[data-label="食材"]{display:none}
+.tbl td::before{content:attr(data-label);font-weight:600;color:var(--t3);font-size:11px;min-width:36px;flex-shrink:0}
+.tbl .tag{display:inline}
 .ac{font-size:11px;padding:3px 8px}
+.actions{flex-direction:column;gap:4px;width:100%}
+.actions .ac{flex:none;width:100%;text-align:center}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
-<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-<h1 style="font-size:20px;margin:0">菜单管理</h1>
-<a href="/" class="bk">&larr; 返回点菜</a>
-<div style="margin-left:auto;display:flex;align-items:center;gap:6px">
-<span style="font-size:12px;color:var(--t3)">{{user.email}}</span>
-<button onclick="showPwdModal()" class="ac" style="font-size:11px;padding:4px 10px">&#x1F512; 修改密码</button>
-<a href="/logout" class="ac" style="font-size:11px;padding:4px 10px;text-decoration:none;color:var(--t2)">退出</a>
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0">
+<div style="display:flex;align-items:center;gap:6px">
+<h1 style="font-size:20px;margin:0;font-weight:700">菜单管理</h1>
+<a href="/" class="bk" style="font-size:12px;color:var(--t3);text-decoration:none;padding:4px 10px;border-radius:6px;border:1px solid var(--l);background:var(--card)">&larr; 返回点菜</a>
+</div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--bg);padding:4px 6px;border-radius:8px;border:1px solid var(--l)">
+<span style="font-size:12px;color:var(--t2);padding:0 6px;font-weight:500">{{user.email}}</span>
+<span style="color:var(--l);font-size:12px">|</span>
+<button onclick="showPwdModal()" class="hd-btn">&#x1F512; 修改密码</button>
+<span style="color:var(--l);font-size:12px">|</span>
+<a href="/logout" class="hd-btn hd-logout">退出</a>
 </div>
 </div>
 
@@ -128,26 +146,28 @@ body{padding:10px}.card{padding:12px}
 </div>
 </div>
 
-<!-- 编辑 -->
-<div class="card" id="ec" style="display:none;border:2px solid var(--p)">
-<h2>编辑 <span id="eid"></span></h2>
-<div class="fr"><input id="eN" placeholder="菜名"></div>
-<div class="fr"><select id="eC"></select></div>
-<div class="fr"><input id="eI" placeholder="图片链接"></div>
-<div class="fr"><textarea id="eD" rows="2" placeholder="描述"></textarea></div>
-<!-- 食材管理 -->
-<div class="fr" style="border-top:1px solid var(--l);padding-top:8px;margin-top:4px">
+<!-- 编辑弹窗 -->
+<div class="mask" id="editMask">
+<div class="mw">
+<h3>&#x1F4DD; 编辑 <span id="eid"></span></h3>
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+<input id="eN" placeholder="菜名" style="padding:9px 12px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:14px;outline:none">
+<select id="eC" style="padding:9px 12px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:14px;outline:none;background:var(--card)"></select>
+<textarea id="eD" rows="2" placeholder="描述(可选)" style="padding:9px 12px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:14px;outline:none;resize:vertical;font-family:inherit"></textarea>
+<div style="border-top:1px solid var(--l);padding-top:8px;margin-top:4px">
 <span style="font-size:13px;color:var(--t2);font-weight:500">食材：</span>
 </div>
-<div id="eIngs"></div>
-<div class="fr" style="gap:4px">
-<input id="eIngN" placeholder="食材名" style="min-width:80px;flex:2">
-<input id="eIngQ" placeholder="用量" style="min-width:60px;flex:1">
-<button style="font-size:12px;padding:8px 12px" onclick="addIng()">添加食材</button>
+<div id="eIngs" style="margin:4px 0"></div>
+<div style="display:flex;gap:4px">
+<input id="eIngN" placeholder="食材名" style="flex:2;padding:8px 10px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:13px;outline:none;min-width:60px">
+<input id="eIngQ" placeholder="用量" style="flex:1;padding:8px 10px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:13px;outline:none;min-width:50px">
+<button onclick="addIng()" style="background:var(--p);color:#fff;border:none;border-radius:var(--rs);padding:8px 14px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap">添加</button>
 </div>
-<div class="fr" style="margin-top:6px">
-<button onclick="saveEdit()">保存</button>
-<button class="sec" onclick="cancelEdit()">取消</button>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+<button class="sec" onclick="cancelEdit()" style="background:#eee;border:none;border-radius:var(--rs);padding:8px 22px;cursor:pointer;font-weight:600;color:var(--t2)">取消</button>
+<button onclick="saveEdit()" style="background:var(--p);color:#fff;border:none;border-radius:var(--rs);padding:8px 22px;cursor:pointer;font-weight:600">保存</button>
+</div>
 </div>
 </div>
 
@@ -278,7 +298,7 @@ function renderT(){
  var flt=catF?dishes.filter(function(d){return d.category===catF}):dishes;
  el.innerHTML=flt.map(function(d){
   var st=d.available?'<span class="on">在售</span>':'<span class="off">下架</span>';
-  return'<tr><td>'+d.name+'</td><td><span class="tag">'+d.category+'</span></td><td style="max-width:120px"><span class="ing-list" id="ings-'+d.id+'"></span><span style="color:var(--t3);font-size:11px">...</span></td><td>'+st+'</td><td><button class="ac" onclick="editD('+d.id+')">编辑</button><button class="ac" onclick="toggleA('+d.id+','+(!d.available)+')">'+(d.available?'下架':'上架')+'</button><button class="ac del" onclick="delD('+d.id+')">删除</button></td></tr>';
+  return'<tr><td data-label="名称">'+d.name+'</td><td data-label="分类"><span class="tag">'+d.category+'</span></td><td data-label="食材" style="max-width:120px"><span class="ing-list" id="ings-'+d.id+'"></span><span style="color:var(--t3);font-size:11px">...</span></td><td data-label="状态">'+st+'</td><td data-label="操作"><div class="actions"><button class="ac" onclick="editD('+d.id+')">编辑</button><button class="ac" onclick="toggleA('+d.id+','+(!d.available)+')">'+(d.available?'下架':'上架')+'</button><button class="ac del" onclick="delD('+d.id+')">删除</button></div></td></tr>';
  }).join('');
  // 异步加载食材摘要
  flt.forEach(function(d){
@@ -311,6 +331,7 @@ function editD(id){
  var ec=document.getElementById('eC');
  ec.innerHTML=cats.map(function(c){return'<option value="'+c.name+'">'+c.icon+' '+c.name+'</option>'}).join('');
  ec.value=d.category;
+ document.getElementById('editMask').style.display='flex';
  document.getElementById('eN').value=d.name;
  document.getElementById('eC').value=d.category;
  document.getElementById('eI').value=d.image_url||'';
@@ -318,7 +339,7 @@ function editD(id){
  // 加载食材
  loadEditIngs(id);
  document.getElementById('ec').style.display='block';
- document.getElementById('ec').scrollIntoView({behavior:'smooth',block:'center'});
+ 
 }
 
 async function loadEditIngs(did){
@@ -342,7 +363,7 @@ async function addIng(){
  var nm=document.getElementById('eIngN').value.trim();
  var qty=document.getElementById('eIngQ').value.trim();
  if(!nm){toast('输入食材名');return}
- var r=await fetch('/api/dishes/'+editingDishId+'/ingredients',{method:'POST',headers:hdr(),body:JSON.stringify({name:nm,quantity:qty})});
+ var r=await fetch('/api/dishes/'+editingDishId+'/ingredients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:nm,quantity:qty})});
  if(!r.ok){return}
  var data=await r.json();
  if(data.ok){
@@ -362,14 +383,14 @@ async function saveEdit(){
  var data={name:document.getElementById('eN').value.trim(),category:document.getElementById('eC').value,
            image_url:document.getElementById('eI').value.trim(),description:document.getElementById('eD').value.trim()};
  if(!data.name){toast('填写菜名');return}
- var r=await fetch('/api/dishes/'+eid,{method:'PUT',headers:hdr(),body:JSON.stringify(data)});
+ var r=await fetch('/api/dishes/'+eid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
  if(!r.ok){return}
  toast('已保存');cancelEdit();loadD();
 }
-function cancelEdit(){eid=null;editingDishId=null;document.getElementById('ec').style.display='none'}
+function cancelEdit(){eid=null;editingDishId=null;document.getElementById('editMask').style.display='none'}
 
 async function toggleA(id,avail){
- var r=await fetch('/api/dishes/'+id,{method:'PUT',headers:hdr(),body:JSON.stringify({available:avail})});
+ var r=await fetch('/api/dishes/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({available:avail})});
  if(!r.ok){return}
  toast(avail?'已上架':'已下架');loadD();
 }
@@ -383,7 +404,7 @@ async function delD(id){
 async function addD(){
  var nm=document.getElementById('inpN').value.trim();
  if(!nm){toast('填写菜名');return}
- var r=await fetch('/api/dishes',{method:'POST',headers:hdr(),body:JSON.stringify({name:nm,category:document.getElementById('inpC').value,image_url:document.getElementById('inpI').value.trim(),description:document.getElementById('inpD').value.trim()})});
+ var r=await fetch('/api/dishes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:nm,category:document.getElementById('inpC').value,image_url:document.getElementById('inpI').value.trim(),description:document.getElementById('inpD').value.trim()})});
  if(!r.ok){return}
  toast('添加成功');
  document.getElementById('inpN').value='';document.getElementById('inpI').value='';document.getElementById('inpD').value='';
@@ -393,6 +414,7 @@ async function addD(){
 function showPwdModal(){document.getElementById('pwdMask').style.display='flex'}
 function hidePwdModal(){document.getElementById('pwdMask').style.display='none'}
 document.getElementById('pwdMask').addEventListener('click',function(e){if(e.target===this)hidePwdModal()});
+document.getElementById('editMask').addEventListener('click',function(e){if(e.target===this)cancelEdit()});
 
 async function chpwd(){
  var old=document.getElementById('oldPwd').value;
