@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<link rel="manifest" href="/static/manifest.json">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/static/icon-192.svg">
+<meta name="theme-color" content="#5b8a72">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>今晚吃什么</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f5f3f0;--card:#fff;--p:#5b8a72;--ph:#4d7a63;--pl:rgba(91,138,114,0.12);--t:#1a1a1a;--t2:#666;--t3:#999;--l:#e8e4e0;--r:14px;--rs:10px;--s:0 2px 12px rgba(0,0,0,0.06);--green:#6b9e6b;--red:#c4665e;--blue:#5e7cb8}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--t);-webkit-font-smoothing:antialiased;padding-bottom:75px}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+@media(min-width:768px){.wrap{padding:0 24px}}
+
+/* Header */
+.hd{display:flex;align-items:center;justify-content:space-between;padding:18px 0 8px}
+.hd h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:6px}
+.hd h1 span{display:inline-flex;width:28px;height:28px;background:var(--p);border-radius:8px;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.hd .hm{display:flex;gap:6px}
+.hd .hm a,.hd .hm button{font-size:12px;color:var(--t3);padding:5px 12px;border:1px solid var(--l);border-radius:20px;cursor:pointer;background:var(--card);text-decoration:none;transition:0.2s}
+.hd .hm a:hover,.hd .hm button:hover{border-color:var(--p);color:var(--p)}
+
+/* Date bar */
+.db{display:flex;align-items:center;gap:5px;margin-bottom:10px}
+.db button{background:var(--card);border:1px solid var(--l);border-radius:var(--rs);padding:5px 10px;cursor:pointer;font-size:13px;color:var(--t2);transition:0.15s;line-height:1.4;user-select:none}
+.db button:hover{border-color:var(--p);color:var(--p)}.db button:active{transform:scale(0.96)}
+.db button.on{background:var(--pl);border-color:var(--p);color:var(--p)}
+.db .dt{flex:1;text-align:center;font-size:14px;font-weight:600}
+.db .dt small{display:block;font-weight:400;font-size:11px;color:var(--t3);margin-top:1px}
+.db .ac{font-size:11px}
+
+/* Selected */
+.sb{background:var(--card);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;box-shadow:var(--s)}
+.sb .sl{font-size:11px;color:var(--t3);font-weight:600;letter-spacing:0.3px;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.sg{display:flex;flex-wrap:wrap;gap:4px}
+.sg .st{display:inline-flex;align-items:center;gap:3px;font-size:12px;padding:3px 7px 3px 9px;border-radius:6px;background:var(--pl);color:var(--p);font-weight:500;animation:pop 0.2s ease}
+@keyframes pop{0%{transform:scale(0.85);opacity:0}100%{transform:scale(1);opacity:1}}
+.sg .st .x{width:13px;height:13px;border-radius:50%;background:rgba(0,0,0,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:8px;cursor:pointer;color:var(--p);flex-shrink:0}
+.em{color:var(--t3);font-size:12px;padding:2px 0;text-align:center}
+
+/* Week */
+.wkv{margin-bottom:10px}
+.wkg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.wkc{background:var(--card);border-radius:var(--rs);padding:6px 2px;text-align:center;box-shadow:var(--s)}
+.wkc .wl{font-size:9px;color:var(--t3);margin-bottom:2px}
+.wkc .wi{font-size:9px;color:var(--t2);line-height:1.4}
+.wkc .wi .ii{background:var(--pl);border-radius:2px;padding:1px 3px;margin:1px 0;font-size:8px;color:var(--p);display:inline-block}
+.wkc.td{background:var(--pl)}
+.wkc.td .wl{color:var(--p);font-weight:600}
+
+/* Input row */
+.row2{display:flex;gap:6px;margin-bottom:10px}
+.row2 .cw{flex:1;display:flex;gap:6px}
+.row2 .cw input{flex:1;padding:8px 10px;border:1px solid var(--l);border-radius:var(--rs);font-size:13px;outline:none;background:var(--card);color:var(--t);min-width:0;transition:0.2s}
+.row2 .cw input:focus{border-color:var(--p)}
+.row2 .cw button{background:var(--card);border:1px solid var(--l);border-radius:var(--rs);padding:0 12px;cursor:pointer;color:var(--t2);font-size:16px;flex-shrink:0}
+.row2 .cw button:hover{border-color:var(--p);color:var(--p)}
+.srch{position:relative;width:170px;flex-shrink:0}
+.srch input{width:100%;padding:8px 8px 8px 28px;border:1px solid var(--l);border-radius:var(--rs);font-size:12px;outline:none;background:var(--card);color:var(--t);transition:0.2s}
+.srch input:focus{border-color:var(--p)}
+.srch .clr{position:absolute;right:5px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--t3);font-size:13px;display:none;line-height:1}
+.srch .ico{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:11px;pointer-events:none}
+@media(max-width:600px){.row2{flex-direction:column}.srch{width:100%}}
+
+/* Category chips */
+.cats{display:none;gap:5px;overflow-x:auto;padding:6px 0;background:var(--bg);position:sticky;top:0;z-index:50;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cats .ch{flex-shrink:0;padding:6px 16px;border-radius:20px;font-size:12px;background:var(--card);border:1px solid var(--l);cursor:pointer;color:var(--t2);white-space:nowrap;transition:0.15s}
+.cats .ch:active{transform:scale(0.96)}
+.cats .ch.on{background:var(--p);border-color:var(--p);color:#fff}
+
+/* Main layout */
+.main{display:flex;gap:14px;align-items:flex-start}
+.side{width:110px;flex-shrink:0;position:sticky;top:12px;background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--s)}
+.side .si{padding:10px 12px;cursor:pointer;font-size:13px;color:var(--t2);border-left:3px solid transparent;transition:0.15s;display:flex;align-items:center;gap:5px}
+.side .si:hover{background:var(--pl)}
+.side .si.on{color:var(--p);font-weight:600;border-left-color:var(--p);background:var(--pl)}
+.side .si .n{margin-left:auto;font-size:11px;color:var(--t3);font-weight:400}
+.side .si .ico2{font-size:14px}
+.body{flex:1;min-width:0}
+
+/* Dish sections */
+.sec{margin-bottom:6px;scroll-margin-top:60px}
+.sec .chd{font-size:13px;font-weight:600;padding:8px 2px 5px;color:var(--t);display:flex;align-items:center;gap:6px}
+.sec .chd .cn{font-weight:400;color:var(--t3);font-size:11px}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+@media(max-width:500px){.dg{grid-template-columns:1fr}}
+.di{background:var(--card);border-radius:var(--rs);padding:9px 10px;cursor:pointer;border:1.5px solid transparent;transition:all 0.2s;box-shadow:var(--s);display:flex;align-items:center;gap:7px;user-select:none}
+.di:hover{border-color:var(--l);transform:translateY(-1px)}
+.di:active{transform:scale(0.97)}
+.di.s{border-color:var(--p);background:var(--pl)}
+.di .di2{flex:1;min-width:0}
+.di .dn{font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px}
+.di .dd{font-size:11px;color:var(--t3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.di .dc{width:18px;height:18px;border-radius:50%;border:2px solid var(--l);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;transition:0.2s}
+.di.s .dc{border-color:var(--p);background:var(--p);color:#fff;transform:scale(1.1)}
+
+/* Bottom */
+.bt{position:fixed;bottom:0;left:0;right:0;background:var(--card);padding:7px 14px;padding-bottom:max(7px,env(safe-area-inset-bottom));border-top:1px solid var(--l);display:flex;align-items:center;gap:8px;z-index:100}
+.bt .bc{flex:1;font-size:12px;color:var(--t2)}
+.bt .bc b{color:var(--p);font-size:15px}
+.bt .bs{background:var(--p);color:#fff;border:none;border-radius:var(--rs);padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;transition:0.15s}
+.bt .bs:active{transform:scale(0.96)}
+.bt .bs:disabled{background:#d0d0d0;color:#aaa}
+
+/* Modal */
+.mask{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.mask.sh{display:flex}
+.mw{background:var(--card);border-radius:var(--r);padding:22px;max-width:460px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.15);animation:modalIn 0.25s ease}
+@keyframes modalIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mw h3{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.mw .mc{text-align:center;margin-top:12px}
+.mw .mc button{background:var(--p);color:#fff;border:none;border-radius:var(--rs);padding:8px 26px;font-size:13px;font-weight:600;cursor:pointer}
+
+/* Shopping list */
+.sl-list{list-style:none;padding:0}
+.sl-list li{padding:6px 0;border-bottom:1px solid var(--l);display:flex;align-items:center;gap:6px;font-size:13px}
+.sl-list li:last-child{border:none}
+.sl-list li .dot{width:5px;height:5px;border-radius:50%;background:var(--p);flex-shrink:0}
+.sl-list li .qty{color:var(--t3);font-size:11px;margin-left:auto}
+.sl-list li .src{color:var(--t3);font-size:10px}
+.sl-list .sep{justify-content:center;border:none;padding:8px 0 3px;font-weight:600;color:var(--p);font-size:13px}
+
+/* Notes */
+.note-wrap{background:var(--card);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;box-shadow:var(--s)}
+.note-wrap .nl{font-size:11px;color:var(--t3);font-weight:600;letter-spacing:0.3px;margin-bottom:6px;display:flex;align-items:center;gap:6px;cursor:pointer}
+.note-wrap textarea{width:100%;border:1px solid var(--l);border-radius:var(--rs);padding:8px;font-size:12px;resize:vertical;min-height:40px;outline:none;font-family:inherit;transition:0.2s;color:var(--t);background:var(--card)}
+.note-wrap textarea:focus{border-color:var(--p)}
+.note-wrap .ns{display:flex;gap:6px;margin-top:5px;justify-content:flex-end}
+.note-wrap .ns button{background:var(--p);color:#fff;border:none;border-radius:var(--rs);padding:5px 14px;font-size:11px;font-weight:600;cursor:pointer}
+.note-wrap .ns .nch{background:var(--card);border:1px solid var(--l);color:var(--t2)}
+
+/* Reminder toast bar */
+.reminder{display:none;background:var(--card);border:1.5px solid var(--p);border-radius:var(--r);padding:10px 14px;margin-bottom:10px;box-shadow:var(--s);align-items:center;gap:8px;animation:pop 0.3s ease}
+.reminder.sh{display:flex}
+.reminder .rt{flex:1;font-size:13px;font-weight:600;color:var(--p)}
+.reminder button{background:var(--p);color:#fff;border:none;border-radius:var(--rs);padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0}
+.reminder .rd{background:var(--card);border:1px solid var(--l);color:var(--t2)}
+
+/* Toast */
+.toast{position:fixed;top:12px;left:50%;transform:translateX(-50%) translateY(-30px);background:rgba(0,0,0,0.85);color:#fff;padding:6px 16px;border-radius:6px;font-size:12px;opacity:0;transition:0.3s;z-index:2000;pointer-events:none;white-space:nowrap}
+.toast.sh{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:680px){.side{display:none}.cats{display:flex}.main{display:block}.wrap{padding:0 10px}.hd{padding:14px 0 6px}.hd h1{font-size:18px}}
+@media(min-width:681px){.cats{display:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hd"><h1><span>&#x1F372;</span> 今晚吃什么</h1>
+<div class="hm"><span style="font-size:11px;color:var(--t3);padding:5px 0">{{user.display_name or user.email.split('@')[0]}}</span><a href="/admin">管理</a><button onclick="openStats()">统计</button><a href="/logout" style="color:var(--t3)">退出</a></div></div>
+
+<div class="db">
+<button onclick="cd(-1)">&#8249;</button>
+<span class="dt" id="dt">今天<small></small></span>
+<button onclick="cd(1)">&#8250;</button>
+<button class="ac" onclick="goToday()">今天</button>
+<button class="ac" onclick="randPick()">随机</button>
+<button class="ac" id="wkBtn" onclick="tw()">周历</button>
+</div>
+
+<!-- Reminder -->
+<div class="reminder" id="reminder"><span class="rt">今天想吃什么？</span><button onclick="dismissReminder()">去选菜</button><button class="rd" onclick="dismissReminder()">稍后</button></div>
+
+<div class="sb">
+<div class="sl">已选 <span id="spill" style="font-size:10px;background:var(--pl);color:var(--p);padding:1px 7px;border-radius:10px;font-weight:500">0</span></div>
+<div class="sg" id="sg"><div class="em">点菜开始</div></div>
+</div>
+
+<div class="wkv" id="wkv" style="display:none">
+<div style="font-size:10px;color:var(--t3);margin-bottom:6px;padding:0 2px;font-weight:600;letter-spacing:0.3px">本周菜单</div>
+<div id="wkc"></div>
+</div>
+
+<!-- Notes -->
+<div class="note-wrap">
+<div class="nl" onclick="toggleNotes()">&#128221; 做饭笔记</div>
+<div id="noteArea" style="display:none">
+<textarea id="noteInput" placeholder="记录今天的经验，比如：火候可以再大一点、少放盐…" oninput="onNoteChange()"></textarea>
+<div class="ns"><button class="nch" onclick="toggleNotes()">取消</button><button onclick="saveNote()">保存笔记</button></div>
+</div>
+</div>
+
+<div class="row2">
+<div class="cw"><input id="cusI" placeholder="自定义菜" onkeydown="if(event.key==='Enter')addCus()"><button onclick="addCus()">+</button></div>
+<div class="srch"><span class="ico">&#128269;</span><input id="si" type="text" placeholder="搜索" oninput="onSrch()"><button class="clr" id="siClr" onclick="clrSrch()">&#10005;</button></div>
+</div>
+
+<div class="cats" id="cats"></div>
+<div class="main"><div class="side" id="side"></div><div class="body" id="body"></div></div>
+</div>
+
+<div class="bt">
+<div class="bc">已选 <b id="cn">0</b></div>
+<button class="bs" id="sbtn" onclick="sub()">备菜</button>
+</div>
+
+<div class="mask" id="mask"><div class="mw"><h3>备菜清单 <span id="slbl" style="font-size:10px;background:var(--pl);color:var(--p);padding:1px 7px;border-radius:4px;font-weight:500"></span></h3><ul class="sl-list" id="mlist"></ul><div class="mc"><button onclick="cp()">知道了</button></div></div></div>
+<div class="mask" id="statsMask"><div class="mw"><h3>统计</h3><div id="statsBody"></div><div class="mc"><button onclick="cpStats()">关闭</button></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="/static/socket.io.min.js"></script>
+<script>
+// Category icons
+var CI={"荤菜":"&#127828;","素菜":"&#129382;","汤":"&#127858;","主食":"&#127834;","凉菜":"&#129473;"};
+var CATS=["荤菜","素菜","汤","主食","凉菜"];
+var DOWS=["周一","周二","周三","周四","周五","周六","周日"];
+var cur=new Date();var dishes=[];var sel={};var cusSel={};
+var noteDirty=false;
+
+function fd(d){var y=d.getFullYear(),m=('0'+(d.getMonth()+1)).slice(-2),dd=('0'+d.getDate()).slice(-2);return y+'-'+m+'-'+dd}
+function today(){return fd(new Date())}
+function ist(d){return fd(d)===today()}
+function esc(s){return String(s).replace(/'/g,"\\'")}
+function hesc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function qs(){return'_t='+Date.now()}
+var _tt;
+function toast(m){clearTimeout(_tt);var e=document.getElementById('toast');e.textContent=m;e.classList.add('sh');_tt=setTimeout(function(){e.classList.remove('sh')},1500)}
+
+function udt(){
+ var el=document.getElementById('dt'),sub=el.querySelector('small');
+ if(ist(cur)){var d=new Date();el.innerHTML='今天<small>'+(d.getMonth()+1)+'/'+d.getDate()+'</small>'}
+ else{var wd=DOWS[cur.getDay()===0?6:cur.getDay()-1];el.innerHTML=fd(cur)+'<small>'+wd+'</small>'}
+}
+
+function rsd(){var el=document.getElementById('side');var h='';
+ CATS.forEach(function(c){var n=dishes.filter(function(d){return d.category===c}).length;
+ h+='<div class="si" data-c="'+c+'" onclick="sc(\''+c+'\')"><span class="ico2">'+CI[c]+'</span>'+c+'<span class="n">'+n+'</span></div>'});el.innerHTML=h}
+function rct(){var el=document.getElementById('cats');var h='';
+ CATS.forEach(function(c){h+='<div class="ch" data-c="'+c+'" onclick="sc(\''+c+'\')">'+CI[c]+' '+c+'</div>'});el.innerHTML=h}
+function sc(c){
+ var e=document.getElementById('cs-'+c);if(e)e.scrollIntoView({behavior:'smooth',block:'start'});
+ document.querySelectorAll('.side .si.on,.ch.on').forEach(function(el){el.classList.remove('on')});
+ var s1=document.querySelector('.side .si[data-c="'+c+'"]');if(s1)s1.classList.add('on');
+ var s2=document.querySelector('.ch[data-c="'+c+'"]');if(s2)s2.classList.add('on');
+}
+
+function stags(){
+ var el=document.getElementById('sg');var ids=Object.keys(sel),cids=Object.keys(cusSel);
+ if(!ids.length&&!cids.length){el.innerHTML='<div class="em">点菜开始</div>';document.getElementById('spill').textContent='0';return}
+ var h='';
+ ids.forEach(function(id){var d=dishes.find(function(di){return di.id==id});if(d)h+='<span class="st">'+hesc(d.name)+'<span class="x" onclick="tg('+id+',\'\')">&#10005;</span></span>'});
+ cids.forEach(function(nm){h+='<span class="st" style="font-style:italic">'+hesc(nm)+'<span class="x" onclick="tgCus(\''+esc(nm)+'\')">&#10005;</span></span>'});
+ el.innerHTML=h;document.getElementById('spill').textContent=ids.length+cids.length;
+}
+
+function render(){
+ var kw=document.getElementById('si').value.trim().toLowerCase();
+ var flt=[];dishes.forEach(function(d){if(!kw||d.name.toLowerCase().indexOf(kw)!==-1)flt.push(d)});
+ var grp={};flt.forEach(function(d){if(!grp[d.category])grp[d.category]=[];grp[d.category].push(d)});
+ var el=document.getElementById('body');var h='';
+ CATS.forEach(function(c){
+  var items=grp[c];if(!items||!items.length)return;var dds='';
+  items.forEach(function(d){
+   var s=sel[d.id]?'s':'';var dc=d.description?'<div class="dd">'+d.description+'</div>':'';
+   dds+='<div class="di '+s+'" onclick="tg('+d.id+',\''+esc(d.name)+'\')"><div class="di2"><div class="dn">'+d.name+'</div>'+dc+'</div><div class="dc">'+(s?'&#10003;':'')+'</div></div>';
+  });
+  h+='<div class="sec" id="cs-'+c+'"><div class="chd">'+CI[c]+' '+c+'<span class="cn"> '+items.length+'</span></div><div class="dg">'+dds+'</div></div>';
+ });
+ el.innerHTML=h||'<p style="color:#999;text-align:center;padding:30px 0;font-size:13px">无匹配菜品</p>';
+ rsd();rct();document.querySelectorAll('.side .si.on,.ch.on').forEach(function(el){el.classList.remove('on')});stags();uc();
+}
+
+async function tg(id,nm){
+ try{var r=await fetch('/api/orders/toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dish_id:id,order_date:fd(cur)})});
+ var data=await r.json();if(data.ok){if(data.selected){sel[id]=true;toast('已选 '+nm)}else{delete sel[id];toast('已取消')}render()}
+ }catch(e){toast('操作失败')}
+}
+function addCus(){var nm=document.getElementById('cusI').value.trim();if(!nm){toast('输入菜名');return}document.getElementById('cusI').value='';tgCus(nm)}
+async function tgCus(nm){
+ try{var r=await fetch('/api/orders/toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({custom_name:nm,order_date:fd(cur)})});
+ var data=await r.json();if(data.ok){if(data.selected){cusSel[nm]=true;toast('已添加 '+nm)}else{delete cusSel[nm];toast('已取消')}stags();uc()}
+ }catch(e){toast('操作失败')}
+}
+function uc(){var n=Object.keys(sel).length+Object.keys(cusSel).length;document.getElementById('cn').textContent=n;document.getElementById('sbtn').disabled=n===0}
+
+async function ld(){try{var r=await fetch('/api/dishes?'+qs());dishes=await r.json();render()}catch(e){toast('加载失败')}}
+async function lo(){
+ try{var r=await fetch('/api/orders?date='+fd(cur)+'&'+qs());var data=await r.json();sel={};cusSel={};
+ data.orders.forEach(function(o){if(o.custom)cusSel[o.dish_name]=true;else sel[o.dish_id]=true});udt();if(dishes.length)stags();render();uc()
+ }catch(e){toast('加载失败')}
+}
+
+// Reminder
+async function checkReminder(){
+ try{var r=await fetch('/api/reminder?'+qs());var data=await r.json();
+ if(data.remind){document.getElementById('reminder').classList.add('sh')}
+ }catch(e){}
+}
+async function dismissReminder(){
+ try{await fetch('/api/reminder/dismiss',{method:'POST'});document.getElementById('reminder').classList.remove('sh')}catch(e){}
+}
+
+// Notes
+async function loadNote(){
+ try{var r=await fetch('/api/notes?date='+fd(cur)+'&'+qs());var data=await r.json();
+ document.getElementById('noteInput').value=data.content||'';noteDirty=false
+ }catch(e){}
+}
+function toggleNotes(){
+ var a=document.getElementById('noteArea');
+ a.style.display=a.style.display==='none'?'block':'none';
+ if(a.style.display==='block')noteDirty=false;
+}
+function onNoteChange(){noteDirty=true}
+async function saveNote(){
+ try{await fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date:fd(cur),content:document.getElementById('noteInput').value})});
+ toast('笔记已保存');noteDirty=false;document.getElementById('noteArea').style.display='none'
+ }catch(e){toast('保存失败')}
+}
+
+// Shopping
+async function sub(){
+ var ids=Object.keys(sel).map(Number),cids=Object.keys(cusSel);
+ if(!ids.length&&!cids.length)return;
+ var si=[];try{var r=await fetch('/api/shopping?date='+fd(cur)+'&'+qs());var sd=await r.json();si=sd.items}catch(e){}
+ var el=document.getElementById('mlist');var h='';
+ ids.forEach(function(id){var d=dishes.find(function(di){return di.id==id});if(d)h+='<li><span class="dot"></span>'+hesc(d.name)+'<span style="color:var(--t3);font-size:10px;margin-left:auto">'+hesc(d.category)+'</span></li>'});
+ cids.forEach(function(nm){h+='<li><span class="dot" style="background:var(--t3)"></span>'+nm+'<span style="color:var(--t3);font-size:10px;margin-left:auto">自定义</span></li>'});
+ if(si.length){
+  h+='<li class="sep">需采购食材</li>';
+  si.forEach(function(i){h+='<li><span class="dot"></span>'+hesc(i.name)+' <span class="qty">'+hesc(i.quantity)+'</span><span class="src">('+hesc(i.dish)+')</span></li>'});
+ }
+ el.innerHTML=h;document.getElementById('slbl').textContent=ids.length+cids.length+'道菜';document.getElementById('mask').classList.add('sh');
+}
+function cp(){document.getElementById('mask').classList.remove('sh')}
+document.getElementById('mask').addEventListener('click',function(e){if(e.target===this)cp()});
+
+// Stats
+async function openStats(){
+ var el=document.getElementById('statsBody');
+ try{var r=await fetch('/api/stats?'+qs());var data=await r.json();
+ var h='<div style="margin-bottom:10px;font-size:12px;color:var(--t2)">累计下单 <b style="color:var(--p)">'+data.total_orders+'</b> 次</div>';
+ if(data.top_dishes.length){
+  h+='<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--t2)">最受欢迎</div>';
+  data.top_dishes.forEach(function(d,i){var ms=['&#129351;','&#129352;','&#129353;'];var pre=i<3?ms[i]:'<span style="color:var(--t3);font-size:11px">'+(i+1)+'</span>';h+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--l);font-size:13px"><span>'+pre+'</span><span style="flex:1">'+d.name+'</span><span style="color:var(--t3);font-size:11px">'+d.category+'</span><span style="color:var(--p);font-weight:600;font-size:13px">'+d.count+'次</span></div>'});
+ }else{h+='<p style="color:var(--t3);font-size:12px">暂无数据</p>'}
+ el.innerHTML=h;document.getElementById('statsMask').classList.add('sh')
+ }catch(e){toast('加载失败')}
+}
+function cpStats(){document.getElementById('statsMask').classList.remove('sh')}
+document.getElementById('statsMask').addEventListener('click',function(e){if(e.target===this)cpStats()});
+
+// Search
+function onSrch(){document.getElementById('siClr').style.display=document.getElementById('si').value?'block':'none';render()}
+function clrSrch(){document.getElementById('si').value='';document.getElementById('siClr').style.display='none';render()}
+
+function cd(delta){cur.setDate(cur.getDate()+delta);udt();lo();loadNote()}
+function goToday(){cur=new Date();udt();lo();loadNote()}
+function randPick(){
+ var avail=dishes.filter(function(d){return d.available});if(!avail.length){toast('没有菜品');return}
+ var pick=avail[Math.floor(Math.random()*avail.length)];
+ fetch('/api/orders/toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dish_id:pick.id,order_date:fd(cur)})})
+ .then(function(r){return r.json()}).then(function(data){if(data.ok&&data.selected){sel[pick.id]=true;toast('随机到 '+pick.name);render()}else if(data.ok){delete sel[pick.id];render()}});
+}
+
+var wkv=false;
+function tw(){wkv=!wkv;document.getElementById('wkv').style.display=wkv?'block':'none';document.getElementById('wkBtn').classList.toggle('on',wkv);if(wkv)lw()}
+async function lw(){
+ try{var r=await fetch('/api/orders/week?'+qs());var data=await r.json();var grp={};
+ data.orders.forEach(function(o){if(!grp[o.order_date])grp[o.order_date]=[];grp[o.order_date].push(o.dish_name)});
+ var mon=new Date(cur);mon.setDate(mon.getDate()-(mon.getDay()===0?6:mon.getDay()-1));var h='<div class="wkg">';
+ for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var ds=fd(d),dd=grp[ds]||[],td=ds===today();
+ h+='<div class="wkc'+(td?' td':'')+'"><div class="wl">'+DOWS[i]+'<br>'+(d.getMonth()+1)+'/'+d.getDate()+'</div><div class="wi">'+(dd.length?dd.map(function(n){return'<div class="ii">'+hesc(n)+'</div>'}):'—')+'</div></div>'}
+ h+='</div>';document.getElementById('wkc').innerHTML=h
+ }catch(e){toast('加载失败')}
+}
+
+// PWA: Register service worker
+if('serviceWorker'in navigator)navigator.serviceWorker.register('/static/sw.js');
+
+// WebSocket: 多人实时同步
+var socket=io();
+socket.on('order_updated',function(data){
+  if(data.date===fd(cur)){
+    lo();  // 当前日期的变化 → 刷新订单
+  }else{
+    // 非当前日期有变化 → 周历中标记一下（如果周历展开就刷新）
+    if(wkv)lw();
+  }
+});
+
+// Init
+checkReminder();
+ld();lo();loadNote();
+</script>
+</body>
+</html>

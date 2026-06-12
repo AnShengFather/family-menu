@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>点菜吧 · 家庭菜单管理</title>
+<link rel="icon" href="https://dc.xizer.cloud/static/favicon.svg?v=2" type="image/svg+xml">
+<link rel="apple-touch-icon" href="https://dc.xizer.cloud/static/icon-192.svg?v=2">
+<meta name="description" content="把自己家的菜单管起来。每天吃什么，家人一起点，自动出采购清单。">
+
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;background:#f8f6f3;color:#1c1917;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+:root{--p:#5b8a72;--p2:#4d7a63;--pl:rgba(91,138,114,0.08);--pl2:rgba(91,138,114,0.04);--t:#1c1917;--t2:#6b7280;--t3:#9ca3af;--bg:#f8f6f3;--card:#fff;--l:#e5e2dc;--r:16px;--rs:10px;--sh:0 1px 3px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04)}
+
+/* ── Nav ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(248,246,243,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--l)}
+nav .in{max-width:1024px;margin:0 auto;padding:0 20px;display:flex;align-items:center;height:56px}
+nav .logo{font-size:17px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:7px;text-decoration:none;white-space:nowrap}
+nav .logo span{width:24px;height:24px;background:var(--p);border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+nav .hmb{display:none;margin-left:auto;background:none;border:none;font-size:22px;color:var(--t2);cursor:pointer;padding:4px;line-height:1}
+nav .lk{display:flex;gap:2px;margin-left:auto;align-items:center}
+nav .lk a{font-size:13px;font-weight:500;color:var(--t2);padding:7px 16px;border-radius:20px;text-decoration:none;transition:.15s}
+nav .lk a:hover{color:var(--p);background:var(--pl)}
+nav .lk .cta{background:var(--p);color:#fff!important}
+nav .lk .cta:hover{background:var(--p2)}
+@media(max-width:680px){
+ nav .hmb{display:block}
+ nav .lk{display:none;flex-direction:column;position:fixed;top:56px;left:0;right:0;background:var(--card);padding:10px 16px 18px;border-bottom:1px solid var(--l);box-shadow:0 12px 32px rgba(0,0,0,.08)}
+ nav .lk.sh{display:flex}
+ nav .lk a{padding:11px 14px;font-size:14px;border-radius:10px}
+}
+
+/* ── Hero ── */
+.hero{max-width:1024px;margin:0 auto;padding:130px 20px 60px;display:flex;align-items:center;gap:50px}
+.hero-t{flex:1;min-width:0}
+.hero-t .tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--p);background:var(--pl);padding:5px 14px;border-radius:20px;font-weight:600;margin-bottom:18px;letter-spacing:.3px}
+.hero-t h1{font-size:40px;font-weight:800;line-height:1.15;margin-bottom:16px;letter-spacing:-.5px}
+.hero-t h1 .hl{color:var(--p)}
+.hero-t p{font-size:16px;color:var(--t2);line-height:1.7;margin-bottom:28px;max-width:500px}
+.hero-t .btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.hero-t .btns a{display:inline-flex;align-items:center;gap:7px;padding:12px 28px;border-radius:var(--rs);font-size:14px;font-weight:600;text-decoration:none;transition:.2s}
+.hero-t .btns .p{background:var(--p);color:#fff;box-shadow:0 4px 14px rgba(91,138,114,.3)}
+.hero-t .btns .p:hover{background:var(--p2);transform:translateY(-2px);box-shadow:0 6px 20px rgba(91,138,114,.35)}
+.hero-t .btns .s{border:1.5px solid var(--l);color:var(--t2);background:var(--card)}
+.hero-t .btns .s:hover{border-color:var(--p);color:var(--p)}
+.hero-t .us{margin-top:26px;display:flex;flex-wrap:wrap;gap:8px}
+.hero-t .us span{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:5px;background:var(--card);padding:4px 12px;border-radius:20px;border:1px solid var(--l)}
+.hero-v{width:380px;flex-shrink:0}
+.hero-v .mock{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;border:1px solid var(--l)}
+.hero-v .mock .mh{padding:12px 14px;border-bottom:1px solid var(--l);display:flex;align-items:center;gap:6px}
+.hero-v .mock .mh .d{width:7px;height:7px;border-radius:50%}
+.hero-v .mock .mh .d:nth-child(1){background:#ff5f57}
+.hero-v .mock .mh .d:nth-child(2){background:#febb2e}
+.hero-v .mock .mh .d:nth-child(3){background:#2bc840}
+.hero-v .mock .mb{padding:16px}
+.hero-v .mock .mb .r{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:3px;cursor:pointer;transition:.15s;user-select:none}
+.hero-v .mock .mb .r:hover{background:var(--pl2)}
+.hero-v .mock .mb .r.s{background:var(--pl)}
+.hero-v .mock .mb .r .ck{width:16px;height:16px;border-radius:50%;border:2px solid var(--l);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;transition:.15s;color:transparent}
+.hero-v .mock .mb .r.s .ck{border-color:var(--p);background:var(--p);color:#fff}
+.hero-v .mock .mb .r .nm{font-size:13px;flex:1}
+.hero-v .mock .mb .r .tg{font-size:10px;color:var(--t3);background:var(--bg);padding:2px 8px;border-radius:10px;white-space:nowrap}
+.hero-v .mock .mb .r.s .tg{background:var(--pl);color:var(--p)}
+.hero-v .mock .mb .dv{height:1px;background:var(--l);margin:10px 0}
+.hero-v .mock .mb .bt{display:flex;align-items:center;justify-content:space-between;padding-top:6px}
+.hero-v .mock .mb .bt .c{font-size:12px;color:var(--t3)}
+.hero-v .mock .mb .bt .c b{color:var(--p)}
+.hero-v .mock .mb .bt .b{background:var(--p);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.hero-v .mock .mb .bt .b:hover{background:var(--p2)}
+.hero-v .mock .mb .bt .b:active{transform:scale(.97)}
+@media(max-width:780px){
+ .hero{flex-direction:column;padding:100px 20px 30px;gap:30px}
+ .hero-t{text-align:center}
+ .hero-t h1{font-size:30px}
+ .hero-t p{max-width:none}
+ .hero-t .btns,.hero-t .us{justify-content:center}
+ .hero-v{width:100%;max-width:360px}
+}
+@media(max-width:480px){
+ .hero{padding-top:85px}
+ .hero-t h1{font-size:24px}
+ .hero-t .btns a{width:100%;justify-content:center}
+}
+
+/* ── Section ── */
+.sec{max-width:1024px;margin:0 auto;padding:64px 20px}
+.sec-h{text-align:center;margin-bottom:40px}
+.sec-h h2{font-size:28px;font-weight:700;margin-bottom:8px;letter-spacing:-.3px}
+.sec-h p{font-size:15px;color:var(--t2);max-width:480px;margin:0 auto;line-height:1.6}
+@media(max-width:480px){
+ .sec{padding:48px 16px}
+ .sec-h h2{font-size:24px}
+}
+
+/* ── Scene ── */
+.scenes{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.scene-card{background:var(--card);border-radius:var(--r);padding:28px 24px;box-shadow:var(--sh);border:1px solid var(--l);transition:.2s}
+.scene-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.06)}
+.scene-card .emo{font-size:30px;margin-bottom:10px;display:block}
+.scene-card h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.scene-card p{font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:4px}
+.scene-card ul{list-style:none;margin-top:8px}
+.scene-card ul li{font-size:13px;color:var(--t2);padding:3px 0;display:flex;align-items:center;gap:6px}
+.scene-card ul li::before{content:'·';color:var(--p);font-weight:700;font-size:16px}
+
+/* ── Features ── */
+.features{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.feature{background:var(--card);border-radius:var(--r);padding:22px 20px;box-shadow:var(--sh);border:1px solid var(--l);transition:.2s}
+.feature:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.06)}
+.feature .ico{font-size:22px;margin-bottom:8px;display:inline-block}
+.feature h3{font-size:14px;font-weight:700;margin-bottom:4px}
+.feature p{font-size:13px;color:var(--t2);line-height:1.6}
+
+/* ── Steps ── */
+.steps{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+.steps .sp{flex:1;min-width:180px;max-width:280px;text-align:center}
+.steps .sp .num{width:38px;height:38px;border-radius:50%;background:var(--pl);color:var(--p);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;margin-bottom:12px}
+.steps .sp h3{font-size:15px;margin-bottom:6px}
+.steps .sp p{font-size:13px;color:var(--t2);line-height:1.5}
+.steps .arw{display:flex;align-items:center;color:var(--l);font-size:20px;padding-top:34px}
+@media(max-width:700px){
+ .steps{flex-direction:column;align-items:center;gap:18px}
+ .steps .sp{max-width:320px}
+ .arw{display:none!important}
+}
+
+/* ── Pricing ── */
+.pricing{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;max-width:780px;margin:0 auto}
+.price{background:var(--card);border-radius:var(--r);padding:28px 22px;box-shadow:var(--sh);border:1px solid var(--l);text-align:center;position:relative;transition:.2s;display:flex;flex-direction:column}
+.price:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.06)}
+.price.feat{border-color:var(--p);box-shadow:0 4px 24px rgba(91,138,114,.12)}
+.price.feat .badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--p);color:#fff;font-size:10px;padding:3px 14px;border-radius:20px;font-weight:600;white-space:nowrap}
+.price .pt{font-size:11px;color:var(--t3);font-weight:600;letter-spacing:1px;margin-bottom:4px}
+.price .amt{font-size:32px;font-weight:800;color:var(--t);margin-bottom:2px}
+.price .amt small{font-size:14px;font-weight:400;color:var(--t3)}
+.price .desc{font-size:13px;color:var(--t3);margin-bottom:20px;line-height:1.5;min-height:36px}
+.price ul{list-style:none;text-align:left;margin-bottom:22px;flex:1}
+.price ul li{font-size:13px;padding:5px 0;color:var(--t2);display:flex;align-items:center;gap:7px}
+.price ul li::before{content:'✓';color:var(--p);font-weight:700;font-size:13px;flex-shrink:0}
+.price .act{display:block;padding:11px 0;border-radius:var(--rs);font-size:13px;font-weight:600;text-decoration:none;transition:.2s;border:1.5px solid var(--p);color:var(--p);background:transparent;text-align:center}
+.price.feat .act{background:var(--p);color:#fff}
+.price .act:hover{background:var(--p);color:#fff;border-color:var(--p)}
+
+/* ── FAQ ── */
+.faq{max-width:620px;margin:0 auto}
+.faq details{margin-bottom:6px;background:var(--card);border-radius:var(--rs);overflow:hidden;border:1px solid var(--l);transition:.15s;cursor:pointer}
+.faq details[open]{box-shadow:var(--sh)}
+.faq summary{padding:14px 16px;font-size:14px;font-weight:600;display:flex;align-items:center;user-select:none;-webkit-user-select:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';margin-left:auto;color:var(--t3);font-size:18px;transition:.2s}
+.faq details[open] summary::after{content:'−'}
+.faq .ans{padding:0 16px 16px;font-size:13px;color:var(--t2);line-height:1.7}
+
+/* ── Signup ── */
+.signup{background:var(--card);border-radius:var(--r);padding:40px 24px;text-align:center;box-shadow:var(--sh);border:1px solid var(--l);max-width:500px;margin:0 auto}
+.signup h3{font-size:20px;font-weight:700;margin-bottom:4px}
+.signup p{font-size:14px;color:var(--t2);margin-bottom:20px}
+.signup form{display:flex;gap:8px;max-width:380px;margin:0 auto}
+.signup input{flex:1;padding:11px 14px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:14px;outline:none;transition:.2s;min-width:0}
+.signup input:focus{border-color:var(--p);box-shadow:0 0 0 3px var(--pl)}
+.signup button{background:var(--p);color:#fff;border:none;border-radius:var(--rs);padding:11px 22px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.15s;flex-shrink:0}
+.signup button:hover{background:var(--p2)}
+.signup .msg{font-size:13px;margin-top:12px;min-height:20px}
+.signup .msg.s{color:#5a8}
+@media(max-width:440px){
+ .signup{padding:28px 16px}
+ .signup form{flex-direction:column}
+}
+
+/* ── Trust bar ── */
+.trust{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:20px}
+.trust span{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:5px;background:var(--card);padding:5px 14px;border-radius:20px;border:1px solid var(--l)}
+
+/* ── Footer ── */
+footer{text-align:center;padding:32px 20px;font-size:12px;color:var(--t3);border-top:1px solid var(--l);margin-top:10px;line-height:1.8}
+footer .dt{color:var(--l);padding:0 6px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(28,25,23,.88);color:#fff;padding:9px 22px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;z-index:999;pointer-events:none;backdrop-filter:blur(4px)}
+.toast.s{opacity:1}
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.hero{animation:fadeUp .45s ease both}
+.feature,.scene-card{animation:fadeUp .4s ease both}
+.feature:nth-child(2){animation-delay:.06s}
+.feature:nth-child(3){animation-delay:.12s}
+.feature:nth-child(4){animation-delay:.18s}
+.feature:nth-child(5){animation-delay:.24s}
+</style>
+</head>
+<body>
+
+<nav>
+<div class="in">
+<a href="#" class="logo"><span>&#x1F372;</span>点菜吧</a>
+<button class="hmb" id="hm" onclick="toggleNav()">&#x2630;</button>
+<div class="lk" id="nv">
+<a href="#scenes">它能做什么</a>
+<a href="#demo">在线体验</a>
+<a href="#pricing">定价</a>
+<a href="#faq">常见问题</a>
+<a href="https://dc.xizer.cloud/register" class="cta">免费注册</a>
+</div>
+</div>
+</nav>
+
+<!-- ─── Hero ─── -->
+<div class="hero">
+<div class="hero-t">
+<div class="tag">&#x1F331; 你家专属的菜单管家</div>
+<h1>每天吃什么，<br><span class="hl">一家人一起选</span></h1>
+<p>打开手机就能点菜。想吃的点一下，系统自动汇成采购清单。再也不用来回问「今晚吃什么」。</p>
+<div class="btns">
+<a href="https://dc.xizer.cloud/register" class="p">&#x1F4E7; 免费注册</a>
+<a href="#demo" class="s">&#x1F3AD; 在线体验</a>
+</div>
+<div class="us">
+<span>&#x1F4DC; 自己家的菜单</span>
+<span>&#x1F517; 家人同步点菜</span>
+<span>&#x1F9FA; 自动出采购单</span>
+<span>&#x1F4C5; 每天吃什么有记录</span>
+</div>
+</div>
+<div class="hero-v">
+<div class="mock" >
+<div class="mh"><span class="d"></span><span class="d"></span><span class="d"></span></div>
+<div class="mb">
+<div class="r s" data-id=1><span class="ck">&#x2713;</span><span class="nm">红烧肉</span><span class="tg">荤菜</span></div>
+<div class="r s" data-id=2><span class="ck">&#x2713;</span><span class="nm">蒜蓉西蓝花</span><span class="tg">素菜</span></div>
+<div class="r" data-id=3><span class="ck"></span><span class="nm">西红柿蛋汤</span><span class="tg">汤</span></div>
+<div class="r s" data-id=4><span class="ck">&#x2713;</span><span class="nm">蛋炒饭</span><span class="tg">主食</span></div>
+<div class="dv"></div>
+<div class="bt"><span class="c">已选 <b>3</b> 道</span><span class="b">看采购清单</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ─── Scene: 场景卡片 ─── -->
+<div class="sec" id="scenes">
+<div class="sec-h">
+<h2>它能做什么</h2>
+<p>看看你家会遇到哪些场景</p>
+</div>
+<div class="scenes">
+
+<div class="scene-card">
+<span class="emo">&#x1F4AD;</span>
+<h3>不用再问「今晚吃什么」</h3>
+<p>晚饭时间，一家人各自打开手机看看菜谱。</p>
+<ul>
+<li>孩子点爱吃的可乐鸡翅</li>
+<li>大人选想吃的红烧肉</li>
+<li>系统自动汇总，买菜有数</li>
+</ul>
+</div>
+
+<div class="scene-card">
+<span class="emo">&#x1F9FA;</span>
+<h3>去超市前看一眼就够了</h3>
+<p>点完菜自动算出今天要买的食材和用量，不用再想买多少。</p>
+<ul>
+<li>红烧肉：五花肉500g、冰糖、八角</li>
+<li>番茄牛腩：牛腩300g、番茄3个</li>
+<li>合并成一份清爽的采购单</li>
+</ul>
+</div>
+
+<div class="scene-card">
+<span class="emo">&#x1F4C5;</span>
+<h3>想起来就记一笔</h3>
+<p>每天做饭后写一句话：「今天盐放多了」「下次小火炖久一点」。</p>
+<ul>
+<li>下次做到这道菜时翻出来看</li>
+<li>家里人轮流做也能保持一致味道</li>
+<li>积累下来就是自家的菜谱宝典</li>
+</ul>
+</div>
+
+<div class="scene-card">
+<span class="emo">&#x1F4CA;</span>
+<h3>看看哪些菜最受欢迎</h3>
+<p>自动统计哪些菜做得最多。心里有数，下周该做什么不用猜。</p>
+<ul>
+<li>红烧肉这周做了3次？下周换换</li>
+<li>小孩最近不爱吃蔬菜？调整搭配</li>
+<li>数据说话，不靠感觉</li>
+</ul>
+</div>
+
+<div class="scene-card">
+<span class="emo">&#x1F4C4;</span>
+<h3>打理自己家的菜单</h3>
+<p>把常做的菜都放进去，按荤素分类。每个家庭的菜单都不一样。</p>
+<ul>
+<li>爱吃辣的加辣菜</li>
+<li>有小孩的加清淡选项</li>
+<li>临时想吃的直接输入菜名</li>
+</ul>
+</div>
+
+<div class="scene-card">
+<span class="emo">&#x1F504;</span>
+<h3>选择困难？随机来一桌</h3>
+<p>不知道吃什么的时候点一下随机推荐，系统帮你挑。</p>
+<ul>
+<li>命运决定今晚吃什么</li>
+<li>发现好久没吃的老菜</li>
+<li>每天都有新期待</li>
+</ul>
+</div>
+
+<div class="scene-card">
+<span class="emo">&#x1F4F1;</span>
+<h3>家人各点各的，实时同步</h3>
+<p>两个人同时打开，一个人点了另一个人自动看到。</p>
+<ul>
+<li>不用喊「我选好了没」</li>
+<li>谁点了什么一目了然</li>
+<li>避免重复买菜做多了</li>
+</ul>
+</div>
+
+<div class="scene-card">
+<span class="emo">&#x1F4C6;</span>
+<h3>提前规划一周菜单</h3>
+<p>周末就把下周吃什么安排好，周历视图一眼看完一周。</p>
+<ul>
+<li>提前计划，采购更从容</li>
+<li>再也不用下班了才想吃什么</li>
+<li>每天照做就行，不纠结</li>
+</ul>
+</div>
+
+</div>
+</div>
+
+<!-- ─── Interactive Demo ─── -->
+<div class="sec" id="demo">
+<div class="sec-h">
+<h2>在线体验</h2>
+<p>自由选菜，清单根据你的选择自动生成</p>
+</div>
+<div class="demo-wrap">
+
+<!-- Demo: 左侧 选菜 -->
+<div class="demo-box" id="demoDish">
+<div class="demo-hd">
+&#x1F372; 点菜
+<button class="demo-hr" onclick="demoRandom()">&#x1F3AF; 随机</button>
+</div>
+<div class="demo-cats" id="demoCats"></div>
+<div class="demo-body" id="demoBody"></div>
+<div class="demo-ft">
+<span>已选 <b id="demoCnt">0</b> 道 ｜ <span id="demoNames" style="font-size:12px;color:var(--t3)">点菜开始</span></span>
+<button class="demo-btn" onclick="showDemoShop()">看采购清单</button>
+</div>
+</div>
+
+<!-- Demo: 右侧 采购清单（初始隐藏） -->
+<div class="demo-box" id="demoShop" style="display:none">
+<div class="demo-hd">
+&#x1F9FA; 采购清单
+<span style="font-size:10px;background:var(--pl);color:var(--p);padding:1px 8px;border-radius:10px;font-weight:500" id="shopCount">0道菜</span>
+</div>
+<div class="demo-body" id="shopBody" style="padding:4px 0"></div>
+<div class="demo-ft">
+<button class="demo-btn demo-btn2" onclick="closeDemoShop()">&#x2190; 返回选菜</button>
+</div>
+</div>
+
+</div>
+</div>
+
+<style>
+.demo-wrap{display:flex;gap:20px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.demo-box{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--l);width:380px;max-width:100%;overflow:hidden;transition:.3s}
+.demo-hd{font-size:13px;font-weight:600;padding:12px 14px;border-bottom:1px solid var(--l);display:flex;align-items:center;gap:6px}
+.demo-hr{margin-left:auto;font-size:11px;background:var(--pl);color:var(--p);border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:600;transition:.1s}
+.demo-hr:hover{background:var(--p);color:#fff}
+.demo-cats{display:flex;gap:4px;padding:8px 10px 4px;overflow-x:auto;scrollbar-width:none}
+.demo-cats::-webkit-scrollbar{display:none}
+.demo-ch{padding:4px 12px;border-radius:12px;font-size:11px;background:var(--bg);border:1px solid var(--l);cursor:pointer;color:var(--t2);white-space:nowrap;transition:.1s;flex-shrink:0;font-weight:500}
+.demo-ch:hover{border-color:var(--p);color:var(--p)}
+.demo-ch.on{background:var(--p);border-color:var(--p);color:#fff}
+.demo-body{padding:6px 0;max-height:360px;overflow-y:auto}
+.demo-grp{padding:4px 0}
+.demo-gh{font-size:11px;font-weight:600;color:var(--t3);padding:5px 14px 3px;letter-spacing:.3px}
+.demo-r{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;transition:.08s;user-select:none}
+.demo-r:hover{background:var(--pl2)}
+.demo-r.s{background:var(--pl)}
+.demo-r .dc{width:18px;height:18px;border-radius:50%;border:2px solid var(--l);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.12s;color:transparent}
+.demo-r.s .dc{border-color:var(--p);background:var(--p)}
+.demo-r .dn{font-size:13px;flex:1;font-weight:500}
+.demo-r .dd{font-size:10px;color:var(--t3);margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px}
+.demo-ft{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--l);font-size:12px;color:var(--t3)}
+.demo-ft b{color:var(--p)}
+.demo-btn{background:var(--p);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0}
+.demo-btn:hover{background:var(--p2)}
+.demo-btn:active{transform:scale(.97)}
+.demo-btn2{background:var(--card);border:1.5px solid var(--l);color:var(--t2);width:100%;justify-content:center;display:flex}
+.demo-btn2:hover{border-color:var(--p);color:var(--p)}
+.shop-grp{padding:4px 14px}
+.shop-h{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:2px;padding:6px 0 4px;border-bottom:1px solid var(--l);display:flex;align-items:center;gap:5px}
+.shop-it{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:13px;color:var(--t2);border-bottom:1px solid var(--l)}
+.shop-it:last-child{border:none}
+.shop-it .sn{flex:1}
+.shop-it .sq{color:var(--t3);font-size:12px;min-width:40px;text-align:right}
+.shop-it .sf{color:var(--t3);font-size:10px;background:var(--bg);padding:1px 6px;border-radius:4px;white-space:nowrap}
+.shop-emp{text-align:center;padding:30px 0;color:var(--t3);font-size:13px}
+</style>
+
+<!-- ─── Features grid ─── -->
+<div class="sec" style="padding-top:0">
+<div class="sec-h">
+<h2>该有的都有</h2>
+</div>
+<div class="features">
+
+<div class="feature">
+<span class="ico">&#x1F4DC;</span>
+<h3>自己的菜单</h3>
+<p>每个家庭自己维护菜单，荤素分类，想加什么加什么</p>
+</div>
+
+<div class="feature">
+<span class="ico">&#x1F517;</span>
+<h3>实时同步</h3>
+<p>多人同时在线，一人点完其他人自动看到</p>
+</div>
+
+<div class="feature">
+<span class="ico">&#x1F9FA;</span>
+<h3>采购清单</h3>
+<p>点完菜自动出食材清单，用量和来源都标清楚</p>
+</div>
+
+<div class="feature">
+<span class="ico">&#x1F9F1;</span>
+<h3>做饭笔记</h3>
+<p>每天记一句，积累起来就是自家的菜谱宝典</p>
+</div>
+
+<div class="feature">
+<span class="ico">&#x1F4CA;</span>
+<h3>统计排行</h3>
+<p>自动统计哪些菜最受欢迎，下周做什么心里有数</p>
+</div>
+
+<div class="feature">
+<span class="ico">&#x1F504;</span>
+<h3>随机推荐</h3>
+<p>选择困难？系统帮你挑，命运决定今晚餐桌</p>
+</div>
+
+<div class="feature">
+<span class="ico">&#x1F4C6;</span>
+<h3>周历总览</h3>
+<p>一周菜单一眼看完，提前规划不慌乱</p>
+</div>
+
+<div class="feature">
+<span class="ico">&#x1F4DD;</span>
+<h3>自定义菜品</h3>
+<p>菜单里没有的菜，直接输入名字也能点</p>
+</div>
+
+</div>
+</div>
+
+<!-- ─── Steps ─── -->
+<div class="sec" style="padding-top:0">
+<div class="sec-h">
+<h2>三步上手</h2>
+<p>不需要注册，打开网页就能用</p>
+</div>
+<div class="steps">
+
+<div class="sp">
+<div class="num">1</div>
+<h3>打开网页</h3>
+<p>用手机或电脑访问，也可以添加到桌面当 App 用</p>
+</div>
+<div class="arw">&#x27A1;</div>
+<div class="sp">
+<div class="num">2</div>
+<h3>选菜</h3>
+<p>想吃的点一下选中，不想要了再点一下取消，跟点头像一样简单</p>
+</div>
+<div class="arw">&#x27A1;</div>
+<div class="sp">
+<div class="num">3</div>
+<h3>看采购单</h3>
+<p>系统自动算好今天要买什么、买多少，去超市照着买</p>
+</div>
+
+</div>
+</div>
+
+<!-- ─── Pricing ─── -->
+<div class="sec" id="pricing">
+<div class="sec-h">
+<h2>定价</h2>
+<p>按需选择，随时可以升级</p>
+</div>
+<div class="pricing">
+
+<div class="price">
+<div class="pt">基础版</div>
+<div class="amt">&#x00A5;8 <small>/月</small></div>
+<p class="desc">适合两口之家</p>
+<ul>
+<li>最多 2 个家庭成员</li>
+<li>7 天菜单记录</li>
+<li>食材采购清单</li>
+<li>做饭笔记</li>
+<li>自家菜单管理</li>
+</ul>
+<a href="https://dc.xizer.cloud/register" class="act">免费注册</a>
+</div>
+
+<div class="price feat">
+<div class="badge">&#x1F525; 推荐</div>
+<div class="pt">专业版</div>
+<div class="amt">&#x00A5;15 <small>/月</small></div>
+<p class="desc">适合大家庭、室友、小团队</p>
+<ul>
+<li>不限家庭成员</li>
+<li><strong>30 天菜单记录</strong></li>
+<li>多人实时同步</li>
+<li>食材采购清单 + 来源标注</li>
+<li>做饭笔记</li>
+<li>数据导出</li>
+</ul>
+<a href="#signup" class="act">免费注册</a>
+</div>
+
+<div class="price">
+<div class="pt">自主版</div>
+<div class="amt">&#x00A5;2,999 <small>一次付清</small></div>
+<p class="desc">安装在自己家的服务器上</p>
+<ul>
+<li>所有专业版功能</li>
+<li>人数无限制</li>
+<li>数据完全归你</li>
+<li>一年免费更新</li>
+<li>专人协助部署</li>
+</ul>
+<a href="https://dc.xizer.cloud/register" class="act">免费注册</a>
+</div>
+
+</div>
+
+<div class="trust">
+<span>&#x1F512; 信息加密传输</span>
+<span>&#x1F504; 每日自动备份</span>
+<span>&#x1F310; 有网就能用</span>
+</div>
+</div>
+
+<!-- ─── FAQ ─── -->
+<div class="sec" id="faq">
+<div class="sec-h">
+<h2>常见问题</h2>
+</div>
+<div class="faq">
+
+<details>
+<summary>基础版两个人够用吗？</summary>
+<div class="ans">小两口完全够用。7 天记录日常规划足够。如果发现不够，随时可以升级到专业版。</div>
+</details>
+
+<details>
+<summary>可以添加自己的菜品吗？</summary>
+<div class="ans">当然可以。每个家庭的菜单都是自己维护的，想加什么加什么，荤素分类自己定。临时想吃的菜直接输入名字也能点。</div>
+</details>
+
+<details>
+<summary>数据安全吗？会丢吗？</summary>
+<div class="ans">所有信息都经过加密传输，并且每天自动备份一次。正常使用不会丢数据，放心用。</div>
+</details>
+
+<details>
+<summary>自主版怎么装？</summary>
+<div class="ans">就是把整套软件安装在你自己的服务器上，数据完全归自己管。适合对隐私比较重视的家庭。我们会帮你部署好，并告诉你日常怎么用。</div>
+</details>
+
+</div>
+</div>
+
+<!-- ─── Signup ─── -->
+<div class="sec" id="signup">
+<div class="signup">
+<h3>&#x1F680; 现在开始用</h3>
+<p>注册即用，每个家庭独立的空间</p>
+<a href="https://dc.xizer.cloud/register" style="display:inline-block;background:var(--p);color:#fff;padding:12px 36px;border-radius:var(--rs);font-size:15px;font-weight:600;text-decoration:none;margin-top:6px;box-shadow:0 4px 14px rgba(91,138,114,.3)">免费创建家庭菜单 &rarr;</a>
+<div style="font-size:12px;color:#bbb;margin-top:14px">无需下载，浏览器打开即用</div>
+</div>
+</div>
+
+<footer>
+&#x00A9; 2026 点菜吧 <span class="dt">&#xB7;</span> 家庭菜单管理工具 <span class="dt">&#xB7;</span> 让每个家庭好好吃饭
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Utilities ──
+function _(id){return document.getElementById(id)}
+var tt;
+function toast(m,ok){
+ clearTimeout(tt);
+ var e=_('toast');
+ e.textContent=m;
+ e.className='toast s';
+ if(ok) tt=setTimeout(function(){e.className='toast'},2200);
+}
+
+// ── Nav ──
+function toggleNav(){_('nv').classList.toggle('sh')}
+document.querySelectorAll('#nv a').forEach(function(a){
+ a.addEventListener('click',function(){_('nv').classList.remove('sh')});
+});
+var st;
+window.addEventListener('scroll',function(){
+ clearTimeout(st);
+ st=setTimeout(function(){_('nv').classList.remove('sh')},200);
+});
+
+// ── Interactive Demo ──
+var demoDishes=[
+ {id:1,name:'红烧肉',cat:'荤菜',desc:'入口即化',ings:[['五花肉','500g'],['冰糖','30g'],['八角','2颗'],['生抽','2勺'],['老抽','1勺'],['姜','3片']]},
+ {id:2,name:'可乐鸡翅',cat:'荤菜',desc:'小朋友最爱',ings:[['鸡翅','8个'],['可乐','1罐'],['姜','3片'],['生抽','1勺']]},
+ {id:3,name:'鱼香肉丝',cat:'荤菜',desc:'酸甜下饭',ings:[['里脊肉','200g'],['木耳','50g'],['胡萝卜','1根'],['泡椒','适量']]},
+ {id:4,name:'番茄牛腩',cat:'荤菜',desc:'汤浓肉烂',ings:[['牛腩','300g'],['番茄','3个'],['土豆','2个'],['姜','3片']]},
+ {id:5,name:'麻婆豆腐',cat:'素菜',desc:'微辣麻香',ings:[['豆腐','1块'],['肉末','100g'],['豆瓣酱','1勺'],['花椒','适量']]},
+ {id:6,name:'蒜蓉西蓝花',cat:'素菜',desc:'清爽健康',ings:[['西蓝花','1颗'],['蒜','5瓣'],['盐','适量']]},
+ {id:7,name:'酸辣土豆丝',cat:'素菜',desc:'开胃下饭',ings:[['土豆','2个'],['干辣椒','3个'],['醋','1勺']]},
+ {id:8,name:'西红柿蛋汤',cat:'汤',desc:'',ings:[['西红柿','2个'],['鸡蛋','2个'],['葱花','适量']]},
+ {id:9,name:'紫菜蛋花汤',cat:'汤',desc:'',ings:[['紫菜','1张'],['鸡蛋','1个'],['虾皮','少许']]},
+ {id:10,name:'蛋炒饭',cat:'主食',desc:'简单管饱',ings:[['米饭','适量'],['鸡蛋','2个'],['葱花','适量']]},
+ {id:11,name:'炒面',cat:'主食',desc:'',ings:[['面条','200g'],['青菜','几颗'],['酱油','1勺']]},
+ {id:12,name:'拍黄瓜',cat:'凉菜',desc:'蒜香酸爽',ings:[['黄瓜','2根'],['蒜','3瓣'],['醋','1勺'],['芝麻油','适量']]}
+];
+var demoCat='';var demoSel={};
+var CI={'荤菜':'&#x1F969;','素菜':'&#x1F966;','汤':'&#x1F372;','主食':'&#x1F95E;','凉菜':'&#x1F96C;'};
+var CATS=['荤菜','素菜','汤','主食','凉菜'];
+function demoRender(){
+ var el=_('demoBody');var cats=_('demoCats');
+ var flt=demoCat?demoDishes.filter(function(d){return d.cat===demoCat}):demoDishes;
+ cats.innerHTML='<span class="demo-ch'+(demoCat==''?' on':'')+'" onclick="demoSetCat(\'\')">全部</span>'+CATS.map(function(c){return'<span class="demo-ch'+(demoCat==c?' on':'')+'" onclick="demoSetCat(\''+c+'\')">'+CI[c]+' '+c+'</span>'}).join('');
+ var grp={};flt.forEach(function(d){if(!grp[d.cat])grp[d.cat]=[];grp[d.cat].push(d)});
+ var h='';CATS.forEach(function(c){var items=grp[c];if(!items||!items.length)return;
+ h+='<div class="demo-grp"><div class="demo-gh">'+CI[c]+' '+c+'</div>';
+ items.forEach(function(d){var s=demoSel[d.id]?' s':'';var dd=d.desc?'<span class="dd">'+d.desc+'</span>':'';
+ h+='<div class="demo-r'+s+'" onclick="demoToggle('+d.id+')"><span class="dc">'+(s?'&#x2713;':'')+'</span><span class="dn">'+d.name+'</span>'+dd+'</div>'});h+='</div>'});
+ el.innerHTML=h||'<div class="shop-emp">无匹配菜品</div>';
+ demoUpd();
+}
+function demoSetCat(c){demoCat=c;demoRender()}
+function demoToggle(id){
+ if(demoSel[id]){delete demoSel[id]}else{demoSel[id]=true}
+ demoRender();
+}
+function demoUpd(){
+ var n=Object.keys(demoSel).length;
+ _('demoCnt').textContent=n;
+ if(n){
+  var names=demoDishes.filter(function(d){return demoSel[d.id]}).map(function(d){return d.name}).join('、');
+  _('demoNames').textContent=names.length>25?names.slice(0,24)+'…':names;
+ }else{_('demoNames').textContent='点菜开始'}
+}
+function demoRandom(){
+ var avail=demoDishes.filter(function(d){return !demoSel[d.id]});
+ if(!avail.length){toast('已经全选了',true);return}
+ var pick=avail[Math.floor(Math.random()*avail.length)];
+ demoSel[pick.id]=true;demoRender();toast('&#x1F3AF; 随机到 '+pick.name,true);
+}
+function showDemoShop(){
+ var n=Object.keys(demoSel).length;
+ if(n==0){toast('先点几道菜吧',true);return}
+ var selDishes=demoDishes.filter(function(d){return demoSel[d.id]});
+ var grp={};selDishes.forEach(function(d){if(!grp[d.cat])grp[d.cat]=[];grp[d.cat].push(d)});
+ _('shopCount').textContent=n+'道菜';
+ var h='';CATS.forEach(function(c){var items=grp[c];if(!items||!items.length)return;
+  h+='<div class="shop-grp"><div class="shop-h">'+CI[c]+' '+c+'</div>';
+  var done={};
+  items.forEach(function(d){d.ings.forEach(function(ing){var key=ing[0];if(done[key])return;done[key]=true;
+   h+='<div class="shop-it"><span class="sn">'+ing[0]+'</span><span class="sq">'+ing[1]+'</span><span class="sf">'+d.name+'</span></div>';
+  })});h+='</div>'});
+ if(!h)h='<div class="shop-emp">未选中任何菜品</div>';
+ _('shopBody').innerHTML=h;
+ _('demoDish').style.display='none';_('demoShop').style.display='block';
+}
+function closeDemoShop(){
+ _('demoShop').style.display='none';_('demoDish').style.display='block';
+}
+demoRender();
+// ── Waitlist Form ──
+var submitted=0;
+function submitForm(e){
+ e.preventDefault();
+ if(submitted){toast('已提交过了，谢谢！');return}
+ var em=_('em').value.trim();
+ var btn=_('sbtn');
+ btn.textContent='提交中...';
+ btn.disabled=true;
+ fetch('./api/waitlist',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({email:em})
+ }).then(function(r){return r.json()}).then(function(d){
+  if(d.ok){
+   _('msg').innerHTML='&#x2705; 已收到！上线后第一时间通知你';
+   _('msg').className='msg s';
+   btn.textContent='已预约';
+   btn.style.background='#8a8';
+   submitted=1;
+   toast('预约成功 &#x2705;',true);
+   _('em').value='';
+  }else{toast('提交失败，请重试',true)}
+ }).catch(function(){toast('网络错误，请重试',true)}).finally(function(){
+  btn.textContent='预约';
+  btn.disabled=false;
+ });
+ return false;
+}
+</script>
+</body>
+</html>

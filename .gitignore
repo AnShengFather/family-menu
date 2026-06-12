@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.db
+.reminder
+.waitlist_emails.txt
+.reset_tokens
+.admin_pass
+backups/
+test_comprehensive.py
+migrate_multi_family.py

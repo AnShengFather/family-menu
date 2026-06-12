@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/static/icon-192.svg">
+<title>忘记密码 · 点菜吧</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f6f3;color:#1c1917;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+:root{--p:#5b8a72;--p2:#4d7a63;--pl:rgba(91,138,114,0.08);--t:#1c1917;--t2:#6b7280;--card:#fff;--l:#e5e2dc;--r:14px;--rs:8px;--sh:0 1px 3px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04)}
+.box{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:36px 32px;width:400px;max-width:100%;border:1px solid var(--l);text-align:center}
+.logo{font-size:22px;font-weight:800;margin-bottom:4px;color:var(--t)}
+.logo span{color:var(--p)}
+.sub{font-size:13px;color:var(--t2);margin-bottom:24px;line-height:1.5}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--t);text-align:left}
+input{width:100%;padding:10px 12px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:14px;outline:none;margin-bottom:16px;transition:.2s}
+input:focus{border-color:var(--p);box-shadow:0 0 0 3px var(--pl)}
+button{width:100%;padding:11px;background:var(--p);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+button:hover{background:var(--p2)}
+.new-pwd{background:#f0f7f3;border-radius:12px;padding:20px;margin-bottom:16px}
+.new-pwd .label{font-size:12px;color:var(--t2);margin-bottom:8px}
+.new-pwd .pwd{font-size:28px;font-weight:800;color:var(--p);letter-spacing:3px;font-family:monospace;word-break:break-all}
+.new-pwd .hint{font-size:12px;color:var(--t2);margin-top:10px;line-height:1.5}
+.err{color:#c44;font-size:13px;margin-bottom:12px}
+.foot{font-size:12px;margin-top:18px;color:var(--t2)}
+.foot a{color:var(--p);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<div class="box">
+<div class="logo">&#x1F372; <span>点菜吧</span></div>
+
+{% if sent %}
+  {% if new_password %}
+<p class="sub">密码已重置，请使用新密码登录</p>
+<div class="new-pwd">
+<div class="label">你的新密码</div>
+<div class="pwd">{{ new_password }}</div>
+<div class="hint">请尽快登录后修改为你常用的密码</div>
+</div>
+<a href="/login" style="display:block;background:var(--p);color:#fff;padding:11px;border-radius:var(--rs);font-size:14px;font-weight:600;text-decoration:none">去登录</a>
+  {% else %}
+<p class="sub">该邮箱未注册，请检查后重试</p>
+<a href="/forgot" style="color:var(--p);font-size:13px;font-weight:600">重新输入</a>
+  {% endif %}
+{% else %}
+<p class="sub">输入注册时使用的邮箱，系统会生成新密码</p>
+<form method="POST" action="/forgot" onsubmit="return submitForm(event)">
+<label for="em">邮箱</label>
+<input type="email" id="em" name="email" placeholder="your@email.com" required autocomplete="email">
+<button type="submit" id="sbtn">重置密码</button>
+</form>
+{% endif %}
+
+<p class="foot"><a href="/login">&#x2190; 返回登录</a></p>
+</div>
+
+{% if not sent %}
+<script>
+function _(id){return document.getElementById(id)}
+function submitForm(e){
+ e.preventDefault();
+ var btn=_('sbtn');btn.textContent='重置中...';btn.disabled=true;
+ var em=_('em').value.trim();
+ fetch('/forgot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})})
+ .then(function(r){return r.json()}).then(function(d){
+  if(d.ok && d.new_password){
+   document.querySelector('.box').innerHTML='<div class="logo">&#x1F372; <span>点菜吧</span></div><p class="sub">密码已重置，请使用新密码登录</p><div class="new-pwd"><div class="label">你的新密码</div><div class="pwd">'+d.new_password+'</div><div class="hint">请尽快登录后修改为你常用的密码</div></div><a href="/login" style="display:block;background:var(--p);color:#fff;padding:11px;border-radius:var(--rs);font-size:14px;font-weight:600;text-decoration:none">去登录</a><p class="foot"><a href="/login">&#x2190; 返回登录</a></p>';
+  }else{
+   document.querySelector('.box').innerHTML='<div class="logo">&#x1F372; <span>点菜吧</span></div><p class="sub">该邮箱未注册，请检查后重试</p><a href="/forgot" style="color:var(--p);font-size:13px;font-weight:600">重新输入</a>';
+  }
+ }).catch(function(){
+  document.querySelector('.box').innerHTML='<div class="logo">&#x1F372; <span>点菜吧</span></div><p class="err">网络错误，请重试</p><a href="/forgot" style="color:var(--p);font-size:13px;font-weight:600">重新输入</a>';
+ });
+ return false;
+}
+</script>
+{% endif %}
+</body>
+</html>

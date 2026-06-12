@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/static/icon-192.svg">
+<title>登录 · 点菜吧</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f6f3;color:#1c1917;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+:root{--p:#5b8a72;--p2:#4d7a63;--pl:rgba(91,138,114,0.08);--t:#1c1917;--t2:#6b7280;--card:#fff;--l:#e5e2dc;--r:14px;--rs:8px;--sh:0 1px 3px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04)}
+.box{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:36px 32px;width:380px;max-width:100%;border:1px solid var(--l)}
+.logo{font-size:22px;font-weight:800;text-align:center;margin-bottom:4px;color:var(--t)}
+.logo span{color:var(--p)}
+.sub{font-size:13px;color:var(--t2);text-align:center;margin-bottom:28px}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--t)}
+input{width:100%;padding:10px 12px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:14px;outline:none;margin-bottom:16px;transition:.2s}
+input:focus{border-color:var(--p);box-shadow:0 0 0 3px var(--pl)}
+button{width:100%;padding:11px;background:var(--p);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+button:hover{background:var(--p2)}
+button:disabled{opacity:.7;cursor:wait}
+button .sp{display:none;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+button.loading .sp{display:inline-block}
+button.loading .lt{display:none}
+.error{color:#c44;font-size:12px;text-align:center;margin-bottom:12px;min-height:18px}
+.foot{font-size:12px;text-align:center;margin-top:18px;color:var(--t2)}
+.foot a{color:var(--p);text-decoration:none;font-weight:600}
+.foot a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="box">
+<div class="logo">&#x1F372; <span>点菜吧</span></div>
+<p class="sub">登录后使用家庭菜单管理</p>
+
+<form method="POST" action="/login" onsubmit="return submitForm(event)">
+<div class="error" id="err"></div>
+<label for="em">邮箱</label>
+<input type="email" id="em" name="email" placeholder="your@email.com" required autocomplete="email">
+<label for="pw">密码</label>
+<input type="password" id="pw" name="password" placeholder="密码" required autocomplete="current-password">
+<button type="submit" id="sbtn"><span class="sp"></span><span class="lt">登录</span></button>
+</form>
+
+<p class="foot">还没有账号？<a href="/register">注册</a> &nbsp;·&nbsp; <a href="/forgot" style="color:var(--t3)">忘记密码？</a></p>
+</div>
+
+<script>
+function _(id){return document.getElementById(id)}
+function submitForm(e){
+ e.preventDefault();
+ var btn=_('sbtn');btn.classList.add('loading');btn.disabled=true;
+ fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:_('em').value.trim(),password:_('pw').value})})
+ .then(function(r){return r.json()}).then(function(d){
+  if(d.ok){window.location.href=d.redirect}
+  else{_('err').textContent=d.error||'登录失败';btn.classList.remove('loading');btn.disabled=false}
+ }).catch(function(){_('err').textContent='网络错误';btn.classList.remove('loading');btn.disabled=false});
+ return false;
+}
+</script>
+</body>
+</html>
