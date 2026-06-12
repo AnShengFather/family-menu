@@ -10,3 +10,9 @@ __pycache__/
 backups/
 test_comprehensive.py
 migrate_multi_family.py
+*.bak
+*.bak2
+backup_db.sh
+reminder_cron.sh
+init_db.py
+menu.db.bak.*
