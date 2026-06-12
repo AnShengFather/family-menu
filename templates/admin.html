@@ -112,7 +112,16 @@ body{padding:10px}.card{padding:12px}
 <h2>添加菜品</h2>
 <div class="fr"><input id="inpN" placeholder="菜名"><select id="inpC"></select></div>
 <div class="fr"><input id="inpI" placeholder="图片链接(可选)"></div>
-<div class="fr"><textarea id="inpD" placeholder="描述(可选)"></textarea></div>
+<div class="fr"><textarea id="inpD" rows="2" placeholder="描述(可选)"></textarea></div>
+<div class="fr" style="border-top:1px solid var(--l);padding-top:8px;margin-top:4px">
+<span style="font-size:13px;color:var(--t2);font-weight:500">食材：</span>
+</div>
+<div id="addIngs" style="margin:4px 0;display:flex;flex-wrap:wrap;gap:4px"></div>
+<div class="fr" style="gap:4px">
+<input id="inpIngN" placeholder="食材名" style="flex:2;min-width:80px">
+<input id="inpIngQ" placeholder="用量" style="flex:1;min-width:60px">
+<button onclick="addIngTemp()" style="font-size:12px;padding:8px 12px;background:var(--bg);border:1px solid var(--l);border-radius:var(--rs);cursor:pointer;color:var(--t2)">添加食材</button>
+</div>
 <div class="fr"><button onclick="addD()">添加</button></div>
 </div>
 
@@ -201,6 +210,7 @@ var dishes=[];
 var catF='';
 var eid=null;
 var eIngs=[];
+var tempIngs=[];
 
 function toast(m){
  var e=document.getElementById('toast');e.textContent=m;e.classList.add('sh');
@@ -339,7 +349,6 @@ function editD(id){
  document.getElementById('eD').value=d.description||'';
  // 加载食材
  loadEditIngs(id);
- document.getElementById('ec').style.display='block';
  
 }
 
@@ -402,17 +411,40 @@ async function delD(id){
  toast('已删除');loadAll();
 }
 
+function renderTempIngs(){
+ var el=document.getElementById('addIngs');
+ if(!tempIngs.length){el.innerHTML='<span style="color:var(--t3);font-size:12px">暂未添加食材</span>';return}
+ el.innerHTML=tempIngs.map(function(i,idx){return'<span style="background:var(--pl);padding:4px 10px;border-radius:4px;font-size:13px;display:inline-block;margin:2px">'+i.name+' '+i.qty+' <span style="cursor:pointer;color:#c44;font-size:11px" onclick="remIngTemp('+idx+')">&#10005;</span></span>'}).join('');
+}
+function addIngTemp(){
+ var nm=document.getElementById('inpIngN').value.trim();
+ var qty=document.getElementById('inpIngQ').value.trim();
+ if(!nm){toast('输入食材名');return}
+ tempIngs.push({name:nm,qty:qty||'适量'});
+ document.getElementById('inpIngN').value='';
+ document.getElementById('inpIngQ').value='';
+ renderTempIngs();
+}
+function remIngTemp(idx){
+ tempIngs.splice(idx,1);
+ renderTempIngs();
+}
+
 async function addD(){
  var nm=document.getElementById('inpN').value.trim();
  if(!nm){toast('填写菜名');return}
  var r=await fetch('/api/dishes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:nm,category:document.getElementById('inpC').value,image_url:document.getElementById('inpI').value.trim(),description:document.getElementById('inpD').value.trim()})});
  if(!r.ok){return}
  var d=await r.json();
+ var newId=d.id;
+ // 添加食材
+ for(var i=0;i<tempIngs.length;i++){
+  await fetch('/api/dishes/'+newId+'/ingredients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:tempIngs[i].name,quantity:tempIngs[i].qty})});
+ }
  document.getElementById('inpN').value='';document.getElementById('inpI').value='';document.getElementById('inpD').value='';
- toast('添加成功，可继续添加食材');
+ tempIngs=[];renderTempIngs();
+ toast('添加成功');
  loadD();
- // 自动打开编辑弹窗以添加食材
- setTimeout(function(){var nd=d.id;if(nd)editD(nd)},300);
 }
 
 function showPwdModal(){document.getElementById('pwdMask').style.display='flex'}
