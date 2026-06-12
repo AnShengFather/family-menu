@@ -152,6 +152,7 @@ body{padding:10px}.card{padding:12px}
 <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
 <input id="eN" placeholder="菜名" style="padding:9px 12px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:14px;outline:none">
 <select id="eC" style="padding:9px 12px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:14px;outline:none;background:var(--card)"></select>
+<input id="eI" placeholder="图片链接(可选)" style="padding:9px 12px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:14px;outline:none">
 <textarea id="eD" rows="2" placeholder="描述(可选)" style="padding:9px 12px;border:1.5px solid var(--l);border-radius:var(--rs);font-size:14px;outline:none;resize:vertical;font-family:inherit"></textarea>
 <div style="border-top:1px solid var(--l);padding-top:8px;margin-top:4px">
 <span style="font-size:13px;color:var(--t2);font-weight:500">食材：</span>
@@ -406,9 +407,12 @@ async function addD(){
  if(!nm){toast('填写菜名');return}
  var r=await fetch('/api/dishes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:nm,category:document.getElementById('inpC').value,image_url:document.getElementById('inpI').value.trim(),description:document.getElementById('inpD').value.trim()})});
  if(!r.ok){return}
- toast('添加成功');
+ var d=await r.json();
  document.getElementById('inpN').value='';document.getElementById('inpI').value='';document.getElementById('inpD').value='';
+ toast('添加成功，可继续添加食材');
  loadD();
+ // 自动打开编辑弹窗以添加食材
+ setTimeout(function(){var nd=d.id;if(nd)editD(nd)},300);
 }
 
 function showPwdModal(){document.getElementById('pwdMask').style.display='flex'}
